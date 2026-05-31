@@ -1,43 +1,47 @@
 "use client";
 
+import { formContent } from "@/lib/constants";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 type AuthType = "signin" | "signup";
 
-type AuthFormValues = {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-};
-
-const formContent = {
-  signin: {
-    eyebrow: "Welcome back",
-    title: "Sign in to Next Scheduler",
-    description:
-      "Plan posts, manage your calendar, and keep publishing on time.",
-    submitLabel: "Sign in",
-    switchText: "New here?",
-    switchLabel: "Create an account",
-    switchHref: "/sign-up",
+const baseFormSchema = z.object({
+  name: z
+    .string({ error: "Name is required" })
+    .min(8, { error: "Name must be at least 8 characters long" })
+    .nonoptional(),
+  email: z.email({ error: "Invalid email address" }).nonoptional(),
+  password: z
+    .string()
+    .min(8, { error: "Password must be at least 8 characters long" })
+    .nonoptional(),
+  confirmPassword: z
+    .string()
+    .min(8, { error: "Password must be at least 8 characters long" })
+    .nonoptional(),
+});
+const formSchema = baseFormSchema.refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
   },
-  signup: {
-    eyebrow: "Start scheduling",
-    title: "Create your account",
-    description: "Draft posts now and schedule them to publish later.",
-    submitLabel: "Sign up",
-    switchText: "Already have an account?",
-    switchLabel: "Sign in",
-    switchHref: "/sign-in",
-  },
-};
+);
 
 export default function AuthForm({ type }: { type: AuthType }) {
   const content = formContent[type];
   const isSignup = type === "signup";
-  const { register, handleSubmit } = useForm<AuthFormValues>({
+  const {
+    register,
+    handleSubmit: submit,
+    formState: { errors, isSubmitting },
+  } = useForm<z.infer<typeof baseFormSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -46,12 +50,72 @@ export default function AuthForm({ type }: { type: AuthType }) {
     },
   });
 
+  const router = useRouter();
+
+  async function handleSubmit(values: z.infer<typeof formSchema>) {
+    const { name, email, password } = values;
+
+    try {
+      if (isSignup) {
+        await authClient.signUp.email(
+          {
+            name,
+            email,
+            password,
+            callbackURL: "/",
+          },
+          {
+            onRequest: () => console.log("Submitting form..."),
+            onSuccess: () => {
+              console.log("Signup successful");
+              router.push("/dashboard");
+            },
+            onError: (ctx) => {
+              if (
+                ctx.error.status === 422 ||
+                ctx.error.code === "EMAIL_ALREADY_EXISTS"
+              ) {
+                console.log(
+                  "This is email already exists, do you want to signin instead?",
+                );
+              } else {
+                console.error("An error occurred", ctx.error.message);
+              }
+            },
+          },
+        );
+      } else {
+        console.log("Signin");
+
+        await authClient.signIn.email(
+          {
+            email,
+            password,
+            callbackURL: "/dashboard",
+          },
+          {
+            onRequest: () => console.log("Submitting form..."),
+            onSuccess: () => {
+              console.log("Signin successful");
+              router.push("/dashboard");
+            },
+            onError: (ctx) => {
+              console.error("An error occurred", ctx.error.message);
+            },
+          },
+        );
+      }
+    } catch (error) {
+      console.error("An unknown error occurred when submitting form...", error);
+    }
+  }
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f5ef] px-6 py-12 text-[#171717]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(20,184,166,0.2),transparent_28%),radial-gradient(circle_at_82%_18%,rgba(251,146,60,0.18),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.94),rgba(247,245,239,0.82))]" />
-      <div className="absolute -bottom-28 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-[#171717]/10 blur-3xl" />
+      <div className="absolute -bottom-28 left-1/2 h-72 w-xl -translate-x-1/2 rounded-full bg-[#171717]/10 blur-3xl" />
 
-      <section className="relative w-full max-w-md rounded-[2rem] border border-white/70 bg-white/80 p-7 shadow-2xl shadow-black/10 backdrop-blur sm:p-9">
+      <section className="relative w-full max-w-md rounded-4xl border border-white/70 bg-white/80 p-7 shadow-2xl shadow-black/10 backdrop-blur sm:p-9">
         <div className="mb-8 text-center">
           <p className="mb-3 text-sm font-semibold text-teal-700">
             {content.eyebrow}
@@ -66,7 +130,8 @@ export default function AuthForm({ type }: { type: AuthType }) {
 
         <button
           type="button"
-          className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-[#171717]/10 bg-white px-5 text-sm font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#171717] focus:ring-offset-2"
+          disabled={isSubmitting}
+          className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-[#171717]/10 bg-white px-5 text-sm font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#171717] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-base font-bold text-[#4285f4]">
             G
@@ -80,7 +145,7 @@ export default function AuthForm({ type }: { type: AuthType }) {
           <div className="h-px flex-1 bg-[#171717]/10" />
         </div>
 
-        <form className="space-y-5" onSubmit={handleSubmit(() => undefined)}>
+        <form className="space-y-5" onSubmit={submit(handleSubmit)}>
           {isSignup ? (
             <label className="block">
               <span className="text-sm font-medium">Name</span>
@@ -89,8 +154,16 @@ export default function AuthForm({ type }: { type: AuthType }) {
                 type="text"
                 autoComplete="name"
                 placeholder="Emmanuel Ameyaw"
-                className="mt-2 h-12 w-full rounded-2xl border border-[#171717]/10 bg-white px-4 text-sm outline-none transition placeholder:text-[#9a9a9a] focus:border-[#171717]/35 focus:ring-4 focus:ring-teal-500/10"
+                className="input-box"
               />
+              <span className="text-sm font-medium mt-1">
+                Please enter your full name (at least 8 characters)
+              </span>
+              <br />
+              {/* Validation error message*/}
+              <span className="validation-error-message">
+                {errors.name?.message}
+              </span>
             </label>
           ) : null}
 
@@ -101,8 +174,12 @@ export default function AuthForm({ type }: { type: AuthType }) {
               type="email"
               autoComplete="email"
               placeholder="you@example.com"
-              className="mt-2 h-12 w-full rounded-2xl border border-[#171717]/10 bg-white px-4 text-sm outline-none transition placeholder:text-[#9a9a9a] focus:border-[#171717]/35 focus:ring-4 focus:ring-teal-500/10"
+              className="input-box"
             />
+            {/* Validation error message*/}
+            <span className="validation-error-message">
+              {errors.email?.message}
+            </span>
           </label>
 
           <label className="block">
@@ -112,8 +189,12 @@ export default function AuthForm({ type }: { type: AuthType }) {
               type="password"
               autoComplete={isSignup ? "new-password" : "current-password"}
               placeholder="Enter your password"
-              className="mt-2 h-12 w-full rounded-2xl border border-[#171717]/10 bg-white px-4 text-sm outline-none transition placeholder:text-[#9a9a9a] focus:border-[#171717]/35 focus:ring-4 focus:ring-teal-500/10"
+              className="input-box"
             />
+            {/* Validation error message*/}
+            <span className="validation-error-message">
+              {errors.password?.message}
+            </span>
           </label>
 
           {isSignup ? (
@@ -124,16 +205,21 @@ export default function AuthForm({ type }: { type: AuthType }) {
                 type="password"
                 autoComplete="new-password"
                 placeholder="Confirm your password"
-                className="mt-2 h-12 w-full rounded-2xl border border-[#171717]/10 bg-white px-4 text-sm outline-none transition placeholder:text-[#9a9a9a] focus:border-[#171717]/35 focus:ring-4 focus:ring-teal-500/10"
+                className="input-box"
               />
+              {/* Validation error message*/}
+              <span className="validation-error-message">
+                {errors.confirmPassword?.message}
+              </span>
             </label>
           ) : null}
 
           <button
             type="submit"
-            className="h-12 w-full rounded-full bg-[#171717] px-5 text-sm font-semibold text-white shadow-xl shadow-black/15 transition hover:-translate-y-0.5 hover:bg-[#2a2a2a] focus:outline-none focus:ring-2 focus:ring-[#171717] focus:ring-offset-2"
+            disabled={isSubmitting}
+            className="h-12 w-full rounded-full bg-[#171717] px-5 text-sm font-semibold text-white shadow-xl shadow-black/15 transition hover:-translate-y-0.5 hover:bg-[#2a2a2a] focus:outline-none focus:ring-2 focus:ring-[#171717] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {content.submitLabel}
+            {isSubmitting ? "Continuing..." : content.submitLabel}
           </button>
         </form>
 

@@ -1,4 +1,11 @@
-export default function HomePage() {
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
+export default async function HomePage() {
+  const session = await auth.api.getSession({headers: await headers()})
+
+  if (session && session.user != null) redirect("/dashboard")
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f5ef] px-6 py-16 text-[#171717]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(20,184,166,0.2),transparent_28%),radial-gradient(circle_at_82%_18%,rgba(251,146,60,0.18),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.92),rgba(247,245,239,0.78))]" />

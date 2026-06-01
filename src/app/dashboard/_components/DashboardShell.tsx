@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "./Sidebar";
+import Link from "next/link";
 
 type PostStats = {
   published: number;
@@ -13,6 +14,7 @@ type DashboardShellProps = {
   user: {
     name?: string | null;
     email?: string | null;
+    signinCount?: number | null;
   };
   stats: PostStats;
 };
@@ -46,22 +48,32 @@ export function DashboardShell({ user, stats }: DashboardShellProps) {
   return (
     <main className="min-h-screen bg-[#f7f5ef] text-[#171717]">
       <div className="flex min-h-screen">
-       
-       {/* Sidebar */}
-       <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} displayName={displayName} />
+        {/* Sidebar */}
+        <Sidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          displayName={displayName}
+        />
 
         <section className="flex min-w-0 flex-1 flex-col px-6 py-8 sm:px-8 lg:px-10">
           <div className="mx-auto w-full max-w-6xl">
             <header className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl shadow-black/5 backdrop-blur sm:p-8">
               <p className="text-lg font-semibold text-teal-700">Dashboard</p>
               <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-                Welcome back, {displayName}
+                {user.signinCount && user.signinCount > 1
+                  ? "Welcome back"
+                  : "Hi there"}
+                , {displayName}
               </h1>
               <p className="mt-3 max-w-2xl text-[#5f5f5f] leading-7">
                 Here is a quick look at how your scheduled posts are doing.
               </p>
             </header>
-
+            {/* <Link href="/feed">
+              <button className="cursor-pointer mt-3 font-medium text-lg bg-black text-white rounded-full py-2 px-4 justify-end transition hover:bg-black/70 active:outline-1">
+                Go to Feed
+              </button>
+            </Link> */}
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               {statCards.map((card) => (
                 <article

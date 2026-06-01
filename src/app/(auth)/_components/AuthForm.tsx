@@ -10,38 +10,51 @@ import { useRouter } from "next/navigation";
 
 type AuthType = "signin" | "signup";
 
-const baseFormSchema = z.object({
-  name: z
-    .string({ error: "Name is required" })
-    .min(8, { error: "Name must be at least 8 characters long" })
-    .nonoptional(),
+const signInSchema = z.object({
   email: z.email({ error: "Invalid email address" }).nonoptional(),
   password: z
     .string()
     .min(8, { error: "Password must be at least 8 characters long" })
     .nonoptional(),
-  confirmPassword: z
-    .string()
-    .min(8, { error: "Password must be at least 8 characters long" })
-    .nonoptional(),
 });
-const formSchema = baseFormSchema.refine(
-  (data) => data.password === data.confirmPassword,
-  {
+
+// Extend signin schema
+const signUpSchema = signInSchema
+  .extend({
+    name: z
+      .string({ error: "Name is required" })
+      .min(8, { error: "Name must be at least 8 characters long" })
+      .nonoptional(),
+    email: z.email({ error: "Invalid email address" }).nonoptional(),
+    password: z
+      .string()
+      .min(8, { error: "Password must be at least 8 characters long" })
+      .nonoptional(),
+    confirmPassword: z
+      .string()
+      .min(8, { error: "Password must be at least 8 characters long" })
+      .nonoptional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
-  },
-);
+  });
+
+type AuthFormValues = z.infer<typeof signInSchema> &
+  Partial<Pick<z.infer<typeof signUpSchema>, "name" | "confirmPassword">>;
 
 export default function AuthForm({ type }: { type: AuthType }) {
   const content = formContent[type];
   const isSignup = type === "signup";
+
+  const currentSchema = isSignup ? signUpSchema : signInSchema;
+
   const {
     register,
     handleSubmit: submit,
     formState: { errors, isSubmitting },
-  } = useForm<z.infer<typeof baseFormSchema>>({
-    resolver: zodResolver(formSchema),
+  } = useForm<AuthFormValues>({
+    resolver: zodResolver(currentSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -52,16 +65,17 @@ export default function AuthForm({ type }: { type: AuthType }) {
 
   const router = useRouter();
 
-  async function handleSubmit(values: z.infer<typeof formSchema>) {
+  async function handleSubmit(values: AuthFormValues) {
     const { name, email, password } = values;
 
     try {
       if (isSignup) {
         await authClient.signUp.email(
           {
-            name,
+            name: name as string,
             email,
             password,
+            signinCount: 0,
             callbackURL: "/",
           },
           {

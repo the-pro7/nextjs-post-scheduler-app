@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Link from "next/link";
+import UpcomingPosts from "./upcoming-posts";
 
 type PostStats = {
   published: number;
@@ -91,6 +92,9 @@ export function DashboardShell({ user, stats }: DashboardShellProps) {
                   </p>
                 </article>
               ))}
+            </div>
+            <div className="mt-6">
+              <UpcomingPosts />
             </div>
           </div>
         </section>

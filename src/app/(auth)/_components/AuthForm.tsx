@@ -7,6 +7,7 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { FcGoogle } from "react-icons/fc";
 
 type AuthType = "signin" | "signup";
 
@@ -147,9 +148,7 @@ export default function AuthForm({ type }: { type: AuthType }) {
           disabled={isSubmitting}
           className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-[#171717]/10 bg-white px-5 text-sm font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#171717] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-base font-bold text-[#4285f4]">
-            G
-          </span>
+          <FcGoogle className="text-xl"/>
           Continue with Google
         </button>
 

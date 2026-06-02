@@ -1,20 +1,22 @@
 "use server";
 
 import { db } from "..";
-import { unstable_cache } from "next/cache";
 
-const getPendingPosts = unstable_cache(async () => {
+const getPendingPosts = async (userId: string) => {
   try {
     const posts = await db.query.posts.findMany({
-      where: (posts, { eq }) => eq(posts.status, "pending"),
+      where: (posts, { eq, and }) => and(eq(posts.status, "pending"), eq(posts.userId, userId)),
+      limit: 5,
+      orderBy: (posts, { desc }) => desc(posts.createdAt),
     });
+    
     return posts;
   } catch (error) {
     console.error("Error fetching pending posts:", error);
     return [];
   }
 }
-)
+
 
 
 export {

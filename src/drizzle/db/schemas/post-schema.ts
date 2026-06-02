@@ -21,9 +21,11 @@ export const posts = pgTable(
     id: text("id").primaryKey(),
     title: varchar("title", { length: 100 }).notNull(),
     body: text("body").notNull(),
+    imageUrl: text("image_url"),
     userId: text("user_id")
       .references(() => user.id)
       .notNull(),
+    scheduledFor: timestamp("scheduled_for", { mode: "date" }).notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
     status: postStatusEnum("status").default("pending").notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" })

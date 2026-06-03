@@ -43,7 +43,7 @@ export function DashboardShell({ user, stats }: DashboardShellProps) {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <header className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl shadow-black/5 backdrop-blur sm:p-8">
+      <header className="page-header">
         <p className="text-lg font-semibold text-teal-700">Dashboard</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
           {user.signinCount && user.signinCount > 1
@@ -51,7 +51,7 @@ export function DashboardShell({ user, stats }: DashboardShellProps) {
             : "Hi there"}
           , {displayName}
         </h1>
-        <p className="mt-3 max-w-2xl text-[#5f5f5f] leading-7">
+        <p className="page-subtext">
           Here is a quick look at how your scheduled posts are doing.
         </p>
       </header>

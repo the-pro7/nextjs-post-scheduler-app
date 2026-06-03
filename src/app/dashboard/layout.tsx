@@ -1,8 +1,10 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { auth } from "@/lib/auth";
 import { DashboardLayoutShell } from "./_components/DashboardLayoutShell";
+
+
 
 export default async function DashBoardLayout({
   children,
@@ -10,8 +12,9 @@ export default async function DashBoardLayout({
   children: ReactNode;
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
+  const user = session?.user;
 
-  if (!session || session.user == null) {
+  if (!session || user == null) {
     redirect("/sign-in");
   }
 

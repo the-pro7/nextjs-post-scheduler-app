@@ -1,14 +1,6 @@
 import { getPendingPosts } from "@/drizzle/db/queries/queries";
+import { formatDate } from "@/lib/utils";
 
-function formatPostDate(date: Date | null) {
-  if (!date) {
-    return "No date";
-  }
-
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-  }).format(date);
-}
 
 function DatePill({ label, value }: { label: string; value: Date | null }) {
   return (
@@ -17,7 +9,7 @@ function DatePill({ label, value }: { label: string; value: Date | null }) {
         {label}
       </p>
       <p className="mt-1 text-sm font-semibold text-[#171717]">
-        {formatPostDate(value)}
+        {formatDate(value)}
       </p>
     </div>
   );

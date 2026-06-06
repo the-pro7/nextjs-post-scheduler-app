@@ -82,10 +82,10 @@ export default function Sidebar({
       {/* User profile */}
       <div className="mt-auto flex flex-col gap-2">
         <Button title="New Post">
-          <span className="flex gap-2 items-center justify-center">
+          <Link href={"/dashboard/posts/create"} className="flex gap-2 items-center justify-center">
             <GoPlus className="text-xl font-bold" />
             {isSidebarOpen && "New Post"}
-          </span>
+          </Link>
         </Button>
         <div
           className={`border-[#171717]/10 border-t pt-5 flex justify-between items-center ${!isSidebarOpen && "flex-col gap-1"}`}

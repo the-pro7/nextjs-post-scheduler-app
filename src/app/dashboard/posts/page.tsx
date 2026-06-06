@@ -4,6 +4,15 @@ import { formatDate } from "@/lib/utils";
 import { getUserPosts } from "@/drizzle/db/queries/queries";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableCaption
+} from "@/components/ui/table";
 
 function getStatusClasses(status: string) {
   const map: Record<string, string> = {
@@ -55,65 +64,43 @@ export default async function DashboardPostsPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-3xl border border-[#171717]/10 bg-white shadow-sm">
-            <div className="grid gap-4 border-b border-[#171717]/10 px-6 py-4 text-sm font-semibold text-[#4a4a4a] sm:grid-cols-[2fr_140px_160px_140px]">
-              <span>Post</span>
-              <span className="hidden sm:block">Status</span>
-              <span className="hidden md:block">Scheduled</span>
-              <span>Created</span>
-              <span>Action</span>
-            </div>
-
-            <div>
-              {userPosts.map((post) => (
-                <article
-                  key={post.id}
-                  className="border-b border-[#171717]/10 px-6 py-5 last:border-b-0"
-                >
-                  <div className="grid gap-4 sm:grid-cols-[1fr_140px_160px_140px]">
-                    <div>
-                      <p className="text-base font-semibold text-[#171717]">
-                        {post.title}
-                      </p>
-                      <p className="mt-2 max-h-12 overflow-hidden text-sm leading-6 text-[#6b6b6b]">
-                        {post.body}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center">
+            <Table>
+              {/* <TableCaption>A list of all your posts</TableCaption> */}
+              <TableHeader>
+                <TableRow className="p-4">
+                  <TableHead>Title</TableHead>
+                  <TableHead>Scheduled For</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {userPosts.map((post) => (
+                  <TableRow key={post.id} className="odd:bg-[#f9f9f9]">
+                    <TableCell>{post.title}</TableCell>
+                    <TableCell className="text-[#6b6b6b]">
+                      {formatDate(post.scheduledFor)}
+                    </TableCell>
+                    <TableCell>
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                          post.status,
-                        )}`}
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(post.status)}`}
                       >
                         {post.status}
                       </span>
-                    </div>
-
-                    <div className="hidden items-center md:flex">
-                      <p className="text-sm text-[#4a4a4a]">
-                        {formatDate(post.scheduledFor)}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-sm text-[#4a4a4a]">
-                        {formatDate(post.createdAt)}
-                      </p>
-                      <Button
-                        type="button"
-                        className="inline-flex h-fit rounded-full px-3 py-1 text-sm font-semibold"
-                      >
-                        {post.status === "failed"
-                          ? "Retry"
-                          : post.status === "pending"
-                            ? "Publish"
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button>
+                        {post.status === "pending"
+                          ? "Publish Now"
+                          : post.status === "failed"
+                            ? "Retry"
                             : "View"}
                       </Button>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </main>

@@ -1,3 +1,5 @@
+export const revalidate = 3600;
+
 import { getPendingPosts } from "@/drizzle/db/queries/queries";
 import { formatDate } from "@/lib/utils";
 

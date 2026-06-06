@@ -26,7 +26,7 @@ const signUpSchema = signInSchema
       .string({ error: "Name is required" })
       .min(8, { error: "Name must be at least 8 characters long" })
       .nonoptional(),
-    email: z.email({ error: "Invalid email address" }).nonoptional(),
+    email: z.email({ error: "Email address required" }).nonoptional(),
     password: z
       .string()
       .min(8, { error: "Password must be at least 8 characters long" })
@@ -53,7 +53,8 @@ export default function AuthForm({ type }: { type: AuthType }) {
   const {
     register,
     handleSubmit: submit,
-    formState: { errors, isSubmitting },
+    setError,
+    formState: { errors, isSubmitting},
   } = useForm<AuthFormValues>({
     resolver: zodResolver(currentSchema),
     defaultValues: {
@@ -93,15 +94,19 @@ export default function AuthForm({ type }: { type: AuthType }) {
                 console.log(
                   "This is email already exists, do you want to signin instead?",
                 );
-              } else {
-                console.error("An error occurred", ctx.error.message);
+              } 
+
+              if(ctx.error.status === 500) {
+                setError("root", {
+                  message: `Failed to ${type}`
+                })
               }
+
+              console.error(ctx.error)
             },
           },
         );
       } else {
-        console.log("Signin");
-
         await authClient.signIn.email(
           {
             email,
@@ -115,6 +120,11 @@ export default function AuthForm({ type }: { type: AuthType }) {
               router.push("/dashboard");
             },
             onError: (ctx) => {
+               if(ctx.error.status === 500) {
+                setError("root", {
+                  message: `Failed to ${type}, check your metwork.`
+                })
+              }
               console.error("An error occurred", ctx.error.message);
             },
           },
@@ -148,7 +158,7 @@ export default function AuthForm({ type }: { type: AuthType }) {
           disabled={isSubmitting}
           className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-[#171717]/10 bg-white px-5 text-sm font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#171717] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <FcGoogle className="text-xl"/>
+          <FcGoogle className="text-xl" />
           Continue with Google
         </button>
 
@@ -159,6 +169,9 @@ export default function AuthForm({ type }: { type: AuthType }) {
         </div>
 
         <form className="space-y-5" onSubmit={submit(handleSubmit)}>
+          <span className="validation-error-message text-center text-xl">
+            {errors.root?.message}
+          </span>
           {isSignup ? (
             <label className="block">
               <span className="text-sm font-medium">Name</span>

@@ -8,8 +8,8 @@ export default async function HomePage() {
   if (session && session.user != null) redirect("/dashboard")
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f5ef] px-6 py-16 text-[#171717]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(20,184,166,0.2),transparent_28%),radial-gradient(circle_at_82%_18%,rgba(251,146,60,0.18),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.92),rgba(247,245,239,0.78))]" />
-      <div className="absolute -bottom-24 left-1/2 h-64 w-136 -translate-x-1/2 rounded-full bg-[#171717]/10 blur-3xl" />
+      <div className="radial-background" />
+      <div className="radial-background-secondary" />
 
       <section className="relative w-full max-w-4xl text-center">
         <p className="mb-5 inline-flex rounded-full border border-[#171717]/10 bg-white/70 px-4 py-2 text-sm font-medium shadow-sm backdrop-blur">

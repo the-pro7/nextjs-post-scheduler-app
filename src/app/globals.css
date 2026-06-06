@@ -68,6 +68,15 @@
   .validation-error-message {
     @apply mt-1 text-sm text-red-500;
   }
+
+  .radial-background {
+    @apply absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(20,184,166,0.2),transparent_28%),radial-gradient(circle_at_82%_18%,rgba(251,146,60,0.18),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.92),rgba(247,245,239,0.78))];
+  }
+
+  .radial-background-secondary {
+    @apply absolute -bottom-24 left-1/2 h-64 w-136 -translate-x-1/2 rounded-full bg-[#171717]/10 blur-3xl;
+  }
+
 }
 
 :root {
